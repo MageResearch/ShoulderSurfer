@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "Research Text Logger",
+    "version": "1.0",
+    "description": "Automatically capture the fully rendered text of every visited page and relay URLs to a scraping service.",
+    "permissions": [
+      "cookies",
+      "webNavigation",
+      "webRequest",
+      "activeTab"
+    ],
+    "host_permissions": [
+      "<all_urls>"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "<all_urls>"
+        ],
+        "js": [
+          "content-script.js"
+        ]
+      }
+    ]
+}
