@@ -5,6 +5,7 @@
     let inFlightRequests = 0;
     let loadFired = false;
     let debounceTimer = null;
+    let clickWatchingEnabled = false;
   
     // Monkey-patch window.fetch to track AJAX calls
     const originalFetch = window.fetch.bind(window);
@@ -35,7 +36,7 @@
     };
   
     function checkReady() {
-      if (!loadFired) return;
+      if (!loadFired || !clickWatchingEnabled) return;
       if (inFlightRequests === 0) {
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(sendPageReady, DEBOUNCE_TIME_MS);
@@ -43,12 +44,33 @@
     }
   
     function sendPageReady() {
+      if (!clickWatchingEnabled) return;
       chrome.runtime.sendMessage({
         type: 'pageReady',
         url: window.location.href
       });
     }
   
+    // Initialize click watching state from storage
+    chrome.storage.local.get(['clickWatchingEnabled'], function(result) {
+      clickWatchingEnabled = result.clickWatchingEnabled || false;
+      console.log('Click watching initialized:', clickWatchingEnabled);
+    });
+
+    // Listen for messages from popup to toggle click watching
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+      if (request.type === 'toggleClickWatching') {
+        clickWatchingEnabled = request.enabled;
+        console.log('Click watching toggled:', clickWatchingEnabled);
+        
+        // If enabling, check if we should send page ready immediately
+        if (clickWatchingEnabled && loadFired && inFlightRequests === 0) {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(sendPageReady, DEBOUNCE_TIME_MS);
+        }
+      }
+    });
+
     // Listen for the window load event to start idle detection
     window.addEventListener('load', () => {
       loadFired = true;

@@ -7,7 +7,8 @@
       "cookies",
       "webNavigation",
       "webRequest",
-      "activeTab"
+      "activeTab",
+      "storage"
     ],
     "host_permissions": [
       "<all_urls>"
@@ -24,5 +25,9 @@
           "content-script.js"
         ]
       }
-    ]
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_title": "Toggle Click Watching"
+    }
 }
